@@ -1,18 +1,17 @@
-FROM maven AS build
+# Base image
+FROM openjdk:22-jdk-slim
 
+# Maintainer info
+LABEL maintainer="pehlivanmert@outlook.com.tr"
+
+# Set the working directory
 WORKDIR /app
 
-COPY ./pom.xml /app
-COPY ./src /app/src
+# Copy the executable JAR file
+COPY target/FinanceAndInvesmentManagementApplication.jar /app/FinanceAndInvesmentManagementApplication.jar
 
-RUN mvn clean package -Dmaven.test.skip=true
-
-FROM openjdk:22
-
-WORKDIR /app
-
-COPY --from=build /app/target/*.jar app.jar
-
+# Expose port
 EXPOSE 8080
 
-CMD ["java", "-jar", "app.jar"]
+# Run the application
+ENTRYPOINT ["java", "-jar", "/app/FinanceAndInvesmentManagementApplication.jar"]

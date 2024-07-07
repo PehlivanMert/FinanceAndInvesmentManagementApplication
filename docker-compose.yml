@@ -1,44 +1,32 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:latest
+  db:
+    image: postgres:15
     container_name: postgres
     environment:
-      POSTGRES_DB: finance_db
-      POSTGRES_USER: finance_user
-      POSTGRES_PASSWORD: finance_pass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      POSTGRES_DB: financial_management
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
-  rabbitmq:
-    image: rabbitmq:management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-
-  finance-app:
-    image: finance-app
-    container_name: finance-app
-    depends_on:
-      - postgres
-      - rabbitmq
+  app:
+    build: .
+    container_name: financial_management_app
     ports:
       - "8080:8080"
+    depends_on:
+      - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finance_db
-      SPRING_DATASOURCE_USERNAME: finance_user
-      SPRING_DATASOURCE_PASSWORD: finance_pass
-      SPRING_RABBITMQ_HOST: rabbitmq
-    build:
-      context: .
-      dockerfile: Dockerfile
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/financial_management
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
@@ -46,10 +34,15 @@ services:
       - "9090:9090"
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana
     container_name: grafana
     ports:
       - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
 
 volumes:
-  postgres_data:
+  postgres-data:
+  grafana-data:
